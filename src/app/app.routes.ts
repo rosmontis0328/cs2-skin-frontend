@@ -1,48 +1,52 @@
-import { Routes } from "@angular/router";
-import { authGuard } from "./guards/auth.guard"; // ✅ Import Auth Guard
+// src/app/app.routes.ts
+import { Routes } from '@angular/router';
+import { authGuard, guestGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-  { path: "", redirectTo: "/collections", pathMatch: "full" },
+  // Default route - redirect based on auth state
+  { 
+    path: '', 
+    redirectTo: '/collections', 
+    pathMatch: 'full' 
+  },
 
-  {
-    path: "collections",
-    loadComponent: () =>
-      import("./pages/collections/collections.component").then(
-        (m) => m.CollectionsComponent,
-      ),
+  // Authentication routes (only accessible when NOT logged in)
+  { 
+    path: 'login', 
+    loadComponent: () => import('./pages/auth/login.componemt').then(m => m.LoginComponent),
+    canActivate: [guestGuard]
   },
-  {
-    path: "market",
-    canActivate: [authGuard], // ✅ protect route
-    loadComponent: () =>
-      import("./pages/market/market.component").then((m) => m.MarketComponent),
+  { 
+    path: 'register', 
+    loadComponent: () => import('./pages/auth/register.componemt').then(m => m.RegisterComponent),
+    canActivate: [guestGuard]
   },
-  {
-    path: "stickers",
-    loadComponent: () =>
-      import("./pages/stickers/stickers.component").then(
-        (m) => m.StickersComponent,
-      ),
+
+  // Protected routes (only accessible when logged in)
+  { 
+    path: 'collections', 
+    loadComponent: () => import('./pages/collections/collections.component').then(m => m.CollectionsComponent),
+    canActivate: [authGuard]
   },
-  {
-    path: "account",
-    canActivate: [authGuard], // ✅ protect route
-    loadComponent: () =>
-      import("./pages/account/account.component").then(
-        (m) => m.AccountComponent,
-      ),
+  { 
+    path: 'market', 
+    loadComponent: () => import('./pages/market/market.component').then(m => m.MarketComponent),
+    canActivate: [authGuard]
   },
-  {
-    path: "login", // ✅ add login route
-    loadComponent: () =>
-      import("./pages/login/login.component").then((m) => m.LoginComponent),
+  { 
+    path: 'stickers', 
+    loadComponent: () => import('./pages/stickers/stickers.component').then(m => m.StickersComponent),
+    canActivate: [authGuard]
   },
-  {
-    path: "register", // ✅ optional: registration page
-    loadComponent: () =>
-      import("./pages/register/register.component").then(
-        (m) => m.RegisterComponent,
-      ),
+  { 
+    path: 'account', 
+    loadComponent: () => import('./pages/account/account.component').then(m => m.AccountComponent),
+    canActivate: [authGuard]
   },
-  { path: "**", redirectTo: "/collections" }, // Wildcard
+
+  // Wildcard route - redirect to login if not authenticated, collections if authenticated
+  { 
+    path: '**', 
+    redirectTo: '/login' 
+  }
 ];

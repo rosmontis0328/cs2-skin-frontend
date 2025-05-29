@@ -1,60 +1,45 @@
 <!-- src/app/components/header/header.component.html -->
-<header
-  class="bg-gradient-to-r from-cs-dark via-cs-purple to-cs-accent sticky top-0 z-50 shadow-lg shadow-black/20"
->
+<header class="bg-gradient-to-r from-cs-dark via-cs-purple to-cs-accent sticky top-0 z-50 shadow-lg shadow-black/20">
   <div class="max-w-7xl mx-auto flex items-center justify-between px-8 py-6">
+    
     <!-- Logo/Brand -->
     <div class="brand">
-      <h1
-        class="text-3xl font-bold text-cs-blue drop-shadow-lg"
-        style="text-shadow: 0 0 10px rgba(0, 212, 255, 0.3)"
-      >
+      <h1 class="text-3xl font-bold text-cs-blue drop-shadow-lg" 
+          style="text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);">
         CS2 Skins
       </h1>
     </div>
 
     <!-- Navigation -->
     <nav class="flex gap-8">
-      <a
-        routerLink="/collections"
-        routerLinkActive="active"
-        class="nav-link text-white no-underline font-medium px-4 py-2 rounded-lg transition-all duration-300 relative hover:bg-cs-blue/10 hover:text-cs-blue hover:-translate-y-0.5"
-      >
+      <a routerLink="/collections" 
+         routerLinkActive="active"
+         class="nav-link text-white no-underline font-medium px-4 py-2 rounded-lg transition-all duration-300 relative hover:bg-cs-blue/10 hover:text-cs-blue hover:-translate-y-0.5">
         Collections
       </a>
-      <a
-        routerLink="/market"
-        routerLinkActive="active"
-        class="nav-link text-white no-underline font-medium px-4 py-2 rounded-lg transition-all duration-300 relative hover:bg-cs-blue/10 hover:text-cs-blue hover:-translate-y-0.5"
-      >
+      <a routerLink="/market" 
+         routerLinkActive="active"
+         class="nav-link text-white no-underline font-medium px-4 py-2 rounded-lg transition-all duration-300 relative hover:bg-cs-blue/10 hover:text-cs-blue hover:-translate-y-0.5">
         Market
       </a>
-      <a
-        routerLink="/stickers"
-        routerLinkActive="active"
-        class="nav-link text-white no-underline font-medium px-4 py-2 rounded-lg transition-all duration-300 relative hover:bg-cs-blue/10 hover:text-cs-blue hover:-translate-y-0.5"
-      >
+      <a routerLink="/stickers" 
+         routerLinkActive="active"
+         class="nav-link text-white no-underline font-medium px-4 py-2 rounded-lg transition-all duration-300 relative hover:bg-cs-blue/10 hover:text-cs-blue hover:-translate-y-0.5">
         Stickers
       </a>
     </nav>
 
     <!-- Account Section -->
     <div class="flex items-center gap-4">
-      <div
-        *ngIf="userBalance !== null"
-        class="balance text-cs-green font-semibold text-sm bg-cs-green/10 px-4 py-2 rounded-full border border-cs-green/30"
-      >
-        Balance: ${{ userBalance | number: "1.2-2" }}
+      <div *ngIf="userBalance !== null" 
+           class="balance text-cs-green font-semibold text-sm bg-cs-green/10 px-4 py-2 rounded-full border border-cs-green/30">
+        Balance: ${{ userBalance | number:'1.2-2' }}
       </div>
-
-      <a
-        routerLink="/account"
-        routerLinkActive="active"
-        class="account-link no-underline transition-transform duration-300 hover:scale-110"
-      >
-        <div
-          class="account-icon w-10 h-10 bg-gradient-to-r from-cs-red to-cs-orange rounded-full flex items-center justify-center text-xl text-white shadow-lg"
-        >
+      
+      <a routerLink="/account" 
+         routerLinkActive="active"
+         class="account-link no-underline transition-transform duration-300 hover:scale-110">
+        <div class="account-icon w-10 h-10 bg-gradient-to-r from-cs-red to-cs-orange rounded-full flex items-center justify-center text-xl text-white shadow-lg">
           👤
         </div>
       </a>

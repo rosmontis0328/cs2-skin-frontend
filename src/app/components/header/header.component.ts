@@ -1,30 +1,50 @@
 // src/app/components/header/header.component.ts
-import { Component, OnInit, inject } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { RouterModule } from "@angular/router";
-import { UserService } from "../../services/user.service";
-import { AuthService } from "../../services/auth.service";
+import { Component, OnInit, inject, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
+import { UserService } from '../../services/user.service';
+import { AuthService } from '../../services/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
-  selector: "app-header",
+  selector: 'app-header',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  templateUrl: "./header.component.html",
-  styleUrl: "./header.component.css",
+  templateUrl: './header.component.html',
+  styleUrl: './header.component.css'
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private authService = inject(AuthService);
-
+  private router = inject(Router);
+  
   userBalance: number | null = null;
   isLoggedIn: boolean = false;
+  private authSubscription?: Subscription;
 
   ngOnInit(): void {
-    // Check if user is logged in
-    this.isLoggedIn = this.authService.isLoggedIn();
+    // Check initial auth state
+    this.checkAuthState();
+    
+    // Subscribe to auth changes
+    this.authSubscription = this.authService.token$.subscribe(() => {
+      this.checkAuthState();
+    });
+  }
 
+  ngOnDestroy(): void {
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
+    }
+  }
+
+  private checkAuthState(): void {
+    this.isLoggedIn = this.authService.isLoggedIn();
+    
     if (this.isLoggedIn) {
       this.loadUserBalance();
+    } else {
+      this.userBalance = null;
     }
   }
 
@@ -32,8 +52,18 @@ export class HeaderComponent implements OnInit {
     try {
       const balanceData = await this.userService.getBalance();
       this.userBalance = balanceData.balance;
-    } catch (error) {
-      console.error("Error loading user balance:", error);
+    } catch (error: any) {
+      console.error('Error loading user balance:', error);
+      // If there's an auth error, user might need to login again
+      if (error?.status === 401) {
+        this.authService.logout();
+        this.router.navigate(['/login']);
+      }
     }
+  }
+
+  onLogout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

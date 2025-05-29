@@ -1,17 +1,15 @@
 // src/app/services/collection.service.ts
-import { Injectable, inject } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { Observable } from "rxjs";
-import { Collection } from "../models/interfaces";
-import { AuthService } from "./auth.service";
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Collection } from '../models/interfaces';
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root'
 })
 export class CollectionService {
   private http = inject(HttpClient);
-  private authService = inject(AuthService);
-  private apiUrl = "http://localhost:3000/collections"; // Adjust to your backend URL
+  private apiUrl = 'http://localhost:3000/collections'; // Adjust to your backend URL
 
   // Get all collections
   getAllCollections(): Observable<Collection[]> {
@@ -25,24 +23,16 @@ export class CollectionService {
 
   // Create collection (admin only)
   createCollection(collection: Partial<Collection>): Observable<Collection> {
-    const headers = this.authService.getAuthHeaders();
-    return this.http.post<Collection>(this.apiUrl, collection, { headers });
+    return this.http.post<Collection>(this.apiUrl, collection);
   }
 
   // Update collection (admin only)
-  updateCollection(
-    id: number,
-    collection: Partial<Collection>,
-  ): Observable<Collection> {
-    const headers = this.authService.getAuthHeaders();
-    return this.http.put<Collection>(`${this.apiUrl}/${id}`, collection, {
-      headers,
-    });
+  updateCollection(id: number, collection: Partial<Collection>): Observable<Collection> {
+    return this.http.put<Collection>(`${this.apiUrl}/${id}`, collection);
   }
 
   // Delete collection (admin only)
   deleteCollection(id: number): Observable<void> {
-    const headers = this.authService.getAuthHeaders();
-    return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers });
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }
