@@ -1,1 +1,60 @@
-/* You can add global styles to this file, and also import other style files */
+/* src/styles.css */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+
+  body {
+    @apply bg-cs-gradient min-h-screen text-white font-sans;
+    background-attachment: fixed;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-cs-purple;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-cs-button rounded;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-cs-button-hover;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-cs-button text-white border-0 px-6 py-3 rounded-lg font-semibold cursor-pointer transition-all duration-300 shadow-cs-button;
+  }
+
+  .btn-primary:hover {
+    @apply bg-cs-button-hover -translate-y-0.5 shadow-cs-button;
+    box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+  }
+
+  .card {
+    @apply bg-cs-card backdrop-blur-md border border-white/10 rounded-xl p-6 transition-all duration-300;
+  }
+
+  .card:hover {
+    @apply -translate-y-1 shadow-cs-card border-cs-blue/30;
+  }
+
+  .page-title {
+    @apply text-4xl text-cs-blue text-center mb-12 drop-shadow-lg;
+    text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+  }
+
+  .loading-spinner {
+    @apply w-10 h-10 border-4 border-cs-blue/20 border-l-cs-blue rounded-full animate-spin;
+  }
+}

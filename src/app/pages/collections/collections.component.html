@@ -1,0 +1,61 @@
+<!-- src/app/pages/collections/collections.component.html -->
+<div class="collections-container">
+  <h2 class="page-title">Collections</h2>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex flex-col items-center gap-4 py-16">
+    <div class="loading-spinner"></div>
+    <p class="text-gray-300">Loading collections...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="text-center py-16 text-cs-red">
+    <p class="text-xl mb-4">{{ error }}</p>
+    <button class="btn-primary" (click)="loadCollections()">Try Again</button>
+  </div>
+
+  <!-- Collections Grid -->
+  <div
+    *ngIf="!loading && !error && collections.length > 0"
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+  >
+    <div
+      *ngFor="let collection of collections; trackBy: trackById"
+      class="collection-card card group cursor-pointer hover:scale-105 transition-transform duration-300"
+    >
+      <!-- Collection Image Placeholder -->
+      <div
+        class="aspect-square bg-gradient-to-br from-cs-blue/20 to-cs-purple/20 rounded-lg mb-4 flex items-center justify-center border border-cs-blue/30"
+      >
+        <div class="text-4xl text-cs-blue opacity-50">🎯</div>
+      </div>
+
+      <!-- Collection Info -->
+      <div class="collection-info flex-1">
+        <h3
+          class="text-xl font-semibold text-white mb-2 group-hover:text-cs-blue transition-colors"
+        >
+          {{ collection.name }}
+        </h3>
+        <p class="text-gray-400 text-sm mb-4">
+          Released: {{ collection.release_year }}
+        </p>
+      </div>
+
+      <!-- Collection Actions -->
+      <div class="collection-actions">
+        <button class="btn-primary w-full text-sm py-2">View Skins</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div
+    *ngIf="!loading && !error && collections.length === 0"
+    class="text-center py-16 text-gray-400"
+  >
+    <div class="text-6xl mb-4">📦</div>
+    <h3 class="text-2xl text-white mb-2">No Collections Found</h3>
+    <p>There are no collections available at the moment.</p>
+  </div>
+</div>

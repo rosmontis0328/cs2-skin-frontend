@@ -1,0 +1,8 @@
+/* src/app/pages/collections/collections.component.css */
+
+.collections-container {
+  @apply py-8;
+}
+
+/* Additional custom styles can be added here if needed */
+/* Most styling is handled by Tailwind CSS classes in the HTML */

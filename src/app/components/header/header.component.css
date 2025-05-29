@@ -1,0 +1,9 @@
+/* src/app/components/header/header.component.css */
+
+.nav-link.active {
+  @apply bg-gradient-to-r from-cs-blue to-blue-400 text-white shadow-cs-button;
+}
+
+.account-link.active .account-icon {
+  @apply bg-gradient-to-r from-cs-blue to-blue-400 shadow-cs-button;
+}
