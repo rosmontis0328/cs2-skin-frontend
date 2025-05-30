@@ -275,25 +275,43 @@ export class MarketComponent implements OnInit {
 
   // FINAL IMAGE HANDLING METHODS
   getSkinImageUrl(skin: any): string {
+    console.log('=== IMAGE URL GENERATION ===');
+    console.log('Skin name:', skin?.name);
+    console.log('Database image_path:', skin?.image_path);
+
     if (skin?.image_path && skin.image_path !== null && skin.image_path !== '') {
       let imagePath = skin.image_path;
-      
+
       // Remove "./" prefix if present
       if (imagePath.startsWith('./')) {
         imagePath = imagePath.substring(2);
       }
-      
-      // Add .jpg extension if not present
-      if (!imagePath.endsWith('.jpg') && !imagePath.endsWith('.png')) {
-        imagePath += '.jpg';
+
+      // If no extension, we'll let the error handler try different extensions
+      if (!this.hasImageExtension(imagePath)) {
+        // Start with PNG since that's what you have
+        const pngUrl = `/assets/skins/${imagePath}.png`;
+        console.log('No extension found, trying PNG first:', pngUrl);
+        return pngUrl;
       }
-      
-      return `/assets/skins/${imagePath}`;
+
+      // If extension already present, use as-is
+      const finalUrl = `/assets/skins/${imagePath}`;
+      console.log('Extension present, using:', finalUrl);
+      return finalUrl;
     }
-    
-    // Fallback to default image
-    return '/assets/skins/default_skin.jpg';
+
+    // Fallback
+    console.log('No image_path, using default fallback');
+    return '/assets/skins/AWP_Dragon_Lore.png';
   }
+
+  // Helper method to check if path has image extension
+  private hasImageExtension(path: string): boolean {
+    return path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png') || path.endsWith('.webp');
+  }
+
+
 
   onImageLoad(event: any, skin: any): void {
     const skinWithState = skin as SkinWithImageState;
