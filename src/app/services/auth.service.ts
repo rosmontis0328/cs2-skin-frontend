@@ -4,12 +4,14 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoginResponse } from '../models/interfaces';
+import { BalanceService } from './balance.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private http = inject(HttpClient);
+  private balanceService = inject(BalanceService);
   private apiUrl = 'http://localhost:3000/auth'; // Adjust to your backend URL
   private tokenSubject = new BehaviorSubject<string | null>(this.getToken());
   public token$ = this.tokenSubject.asObservable();
@@ -33,6 +35,8 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('cs2_token');
     this.tokenSubject.next(null);
+    // Reset balance when logging out
+    this.balanceService.resetBalance();
   }
 
   // Check if user is logged in
