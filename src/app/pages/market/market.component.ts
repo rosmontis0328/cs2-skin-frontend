@@ -1,4 +1,3 @@
-// src/app/pages/market/market.component.ts - COMPLETE FIXED VERSION
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
@@ -8,7 +7,13 @@ import { CollectionService } from '../../services/collection.service';
 import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { BalanceService } from '../../services/balance.service';
-import { MarketListing, SkinInstance, Collection, Rarity, Wear } from '../../models/interfaces';
+import { MarketListing, SkinInstance, Collection, Rarity, Wear, Skin } from '../../models/interfaces';
+
+// Extend Skin for image state
+interface SkinWithImageState extends Skin {
+  imageLoaded?: boolean;
+  imageFallbackAttempted?: boolean;
+}
 
 @Component({
   selector: 'app-market',
@@ -26,24 +31,20 @@ export class MarketComponent implements OnInit {
   private balanceService = inject(BalanceService);
   private fb = inject(FormBuilder);
 
-  // Data
   marketListings: any[] = [];
   userSkinInstances: SkinInstance[] = [];
   filteredListings: any[] = [];
   collections: Collection[] = [];
-  
-  // State
+
   loading = true;
   userSkinsLoading = false;
   showSellModal = false;
   selectedSkinToSell: SkinInstance | null = null;
   userBalance = 0;
 
-  // Forms
   filterForm: FormGroup;
   sellForm: FormGroup;
 
-  // Filter/Sort options
   rarityOptions = Object.values(Rarity);
   wearOptions = Object.values(Wear);
   sortOptions = [
@@ -79,7 +80,6 @@ export class MarketComponent implements OnInit {
     this.setupFilterSubscription();
   }
 
-  // SECURITY FIX: Get current user ID from JWT token
   private getCurrentUserId(): number | null {
     const token = this.authService.getToken();
     if (token) {
@@ -101,9 +101,19 @@ export class MarketComponent implements OnInit {
         this.marketService.getAllListings().toPromise(),
         this.collectionService.getAllCollections().toPromise()
       ]);
-      
+
       this.marketListings = listings || [];
       this.collections = collections || [];
+
+      // Initialize image loading state
+      this.marketListings.forEach(listing => {
+        if (listing.skin) {
+          const skinWithState = listing.skin as SkinWithImageState;
+          skinWithState.imageLoaded = undefined;
+          skinWithState.imageFallbackAttempted = false;
+        }
+      });
+
       this.applyFilters();
     } catch (error) {
       console.error('Error loading market data:', error);
@@ -112,12 +122,11 @@ export class MarketComponent implements OnInit {
     }
   }
 
-  // SECURITY FIX: Only load current user's skins
   async loadUserSkins(): Promise<void> {
     try {
       this.userSkinsLoading = true;
       const currentUserId = this.getCurrentUserId();
-      
+
       if (!currentUserId) {
         console.error('No user ID found');
         this.userSkinInstances = [];
@@ -125,17 +134,22 @@ export class MarketComponent implements OnInit {
       }
 
       const allSkinInstances = await this.skinService.getAllSkinInstances().toPromise();
-      
-      // CRITICAL: Filter skins by current user ID AND availability
+
       this.userSkinInstances = (allSkinInstances || []).filter(
-        (instance: SkinInstance) => 
-          instance.owner?.id === currentUserId && // Only current user's skins
-          !instance.is_listed_for_sale && 
+        (instance: SkinInstance) =>
+          instance.owner?.id === currentUserId &&
+          !instance.is_listed_for_sale &&
           !instance.is_traded_away
       );
-      
-      console.log(`Loaded ${this.userSkinInstances.length} skins for user ${currentUserId}`);
-      
+
+      this.userSkinInstances.forEach(instance => {
+        if (instance.skin) {
+          const skinWithState = instance.skin as SkinWithImageState;
+          skinWithState.imageLoaded = undefined;
+          skinWithState.imageFallbackAttempted = false;
+        }
+      });
+
     } catch (error) {
       console.error('Error loading user skins:', error);
       this.userSkinInstances = [];
@@ -144,15 +158,11 @@ export class MarketComponent implements OnInit {
     }
   }
 
-  // BALANCE FIX: Proper balance synchronization
   async loadUserBalance(): Promise<void> {
     try {
       const balanceData = await this.userService.getBalance();
       this.userBalance = balanceData.balance;
-      
-      // Update the balance service to keep everything in sync
       this.balanceService.updateBalance(balanceData.balance);
-      
     } catch (error) {
       console.error('Error loading balance:', error);
     }
@@ -168,56 +178,49 @@ export class MarketComponent implements OnInit {
     const filters = this.filterForm.value;
     let filtered = [...this.marketListings];
 
-    // Search filter
     if (filters.search) {
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         item.skin.name.toLowerCase().includes(filters.search.toLowerCase()) ||
         item.skin.weapon_type.toLowerCase().includes(filters.search.toLowerCase())
       );
     }
 
-    // Collection filter
     if (filters.collection) {
       filtered = filtered.filter(item => item.skin.collection?.id == filters.collection);
     }
 
-    // Rarity filter
     if (filters.rarity) {
       filtered = filtered.filter(item => item.skin.rarity === filters.rarity);
     }
 
-    // Wear filter
     if (filters.wear) {
       filtered = filtered.filter(item => item.wear === filters.wear);
     }
 
-    // Price filters
     if (filters.minPrice) {
       filtered = filtered.filter(item => item.price >= parseFloat(filters.minPrice));
     }
+
     if (filters.maxPrice) {
       filtered = filtered.filter(item => item.price <= parseFloat(filters.maxPrice));
     }
 
-    // Float filters
     if (filters.minFloat) {
       filtered = filtered.filter(item => item.float_value >= parseFloat(filters.minFloat));
     }
+
     if (filters.maxFloat) {
       filtered = filtered.filter(item => item.float_value <= parseFloat(filters.maxFloat));
     }
 
-    // StatTrak filter
     if (filters.isStattrak) {
       filtered = filtered.filter(item => item.is_stattrak);
     }
 
-    // Souvenir filter
     if (filters.isSouvenir) {
       filtered = filtered.filter(item => item.is_souvenir);
     }
 
-    // Sorting
     this.applySorting(filtered, filters.sortBy);
   }
 
@@ -239,86 +242,78 @@ export class MarketComponent implements OnInit {
     this.filteredListings = items;
   }
 
-  getRarityColor(rarity: string): string {
-    const colors: { [key: string]: string } = {
-      'white': 'text-gray-300',
-      'blue': 'text-blue-400',
-      'dark_blue': 'text-blue-600',
-      'purple': 'text-purple-400',
-      'pink': 'text-pink-400',
-      'red': 'text-red-400',
-      'contraband': 'text-yellow-400'
-    };
-    return colors[rarity] || 'text-white';
+  public getSkinImageUrl(skin: any): string {
+    if (skin.image_path && skin.image_path !== null && skin.image_path !== '') {
+      let imagePath = skin.image_path;
+      if (imagePath.startsWith('./')) {
+        imagePath = imagePath.substring(2);
+      }
+      if (!imagePath.endsWith('.jpg') && !imagePath.endsWith('.png')) {
+        imagePath += '.jpg';
+      }
+      return `/assets/skins/${imagePath}`;
+    }
+    return '/assets/skins/AWP_Dragon_Lore.jpg';
   }
 
-  getRarityBorderColor(rarity: string): string {
-    const colors: { [key: string]: string } = {
-      'white': 'border-gray-300/50',
-      'blue': 'border-blue-400/50',
-      'dark_blue': 'border-blue-600/50',
-      'purple': 'border-purple-400/50',
-      'pink': 'border-pink-400/50',
-      'red': 'border-red-400/50',
-      'contraband': 'border-yellow-400/50'
-    };
-    return colors[rarity] || 'border-white/20';
+  public onImageLoad(event: any, skin: any): void {
+    const skinWithState = skin as SkinWithImageState;
+    skinWithState.imageLoaded = true;
   }
 
-  // BALANCE FIX: Better balance synchronization after purchase
-  async buySkin(listing: any): Promise<void> {
+  public onImageError(event: any, skin: any): void {
+    const skinWithState = skin as SkinWithImageState;
+    skinWithState.imageLoaded = false;
+    skinWithState.imageFallbackAttempted = true;
+  }
+
+  public buySkin(listing: any): Promise<void> {
     if (this.userBalance < listing.price) {
       alert('Insufficient balance!');
-      return;
+      return Promise.resolve();
     }
 
-    if (confirm(`Buy ${listing.skin.name} for $${listing.price}?`)) {
-      try {
-        const result = await this.marketService.buySkin(listing.id).toPromise();
+    if (!confirm(`Buy ${listing.skin.name} for $${listing.price}?`)) return Promise.resolve();
+
+    return this.marketService.buySkin(listing.id).toPromise()
+      .then(result => {
         alert('Purchase successful!');
-        
-        // Get the updated balance from the server response if available
         if (result?.newBalance !== undefined) {
           this.userBalance = result.newBalance;
           this.balanceService.updateBalance(result.newBalance);
         } else {
-          // Fallback: Reload balance from server
-          await this.loadUserBalance();
+          return this.loadUserBalance();
         }
-        
-        // Reload market data
-        this.loadMarketData();
-        
-      } catch (error) {
+        return this.loadMarketData();
+      })
+      .catch(error => {
         console.error('Error buying skin:', error);
         alert('Purchase failed. Please try again.');
-        // Reload balance in case of error to ensure accuracy
-        this.loadUserBalance();
-      }
-    }
+        return this.loadUserBalance();
+      });
   }
 
-  openSellModal(): void {
+  public openSellModal(): void {
     this.showSellModal = true;
     this.loadUserSkins();
   }
 
-  closeSellModal(): void {
+  public closeSellModal(): void {
     this.showSellModal = false;
     this.selectedSkinToSell = null;
     this.sellForm.reset();
   }
 
-  selectSkinToSell(skin: SkinInstance): void {
+  public selectSkinToSell(skin: SkinInstance): void {
     this.selectedSkinToSell = skin;
     this.sellForm.patchValue({ price: skin.skin.base_price });
   }
 
-  async listSkinForSale(): Promise<void> {
+  public async listSkinForSale(): Promise<void> {
     if (!this.selectedSkinToSell || this.sellForm.invalid) return;
 
     const price = this.sellForm.value.price;
-    
+
     try {
       await this.marketService.listSkinForSale(this.selectedSkinToSell.id, price).toPromise();
       alert('Skin listed for sale successfully!');
@@ -330,7 +325,7 @@ export class MarketComponent implements OnInit {
     }
   }
 
-  clearFilters(): void {
+  public clearFilters(): void {
     this.filterForm.reset({
       search: '',
       collection: '',
@@ -346,7 +341,24 @@ export class MarketComponent implements OnInit {
     });
   }
 
-  trackById(index: number, item: any): number {
+  public trackById(index: number, item: any): number {
     return item.id;
   }
+
+  private readonly rarityBorderColors: Record<string, string> = {
+  'white': 'border-gray-300/50',
+  'blue': 'border-blue-400/50',
+  'dark_blue': 'border-blue-600/50',
+  'purple': 'border-purple-400/50',
+  'pink': 'border-pink-400/50',
+  'red': 'border-red-400/50',
+  'contraband': 'border-yellow-400/50'
+};
+
+public getRarityBorderColor(rarity: string): string {
+  return this.rarityBorderColors[rarity] || 'border-white/20';
 }
+
+}
+
+
