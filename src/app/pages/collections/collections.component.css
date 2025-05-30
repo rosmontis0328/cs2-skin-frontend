@@ -4,5 +4,67 @@
   @apply py-8;
 }
 
-/* Additional custom styles can be added here if needed */
-/* Most styling is handled by Tailwind CSS classes in the HTML */
+.collection-card {
+  @apply bg-cs-card backdrop-blur-md border border-white/10 rounded-xl p-6 transition-all duration-300;
+}
+
+.collection-card:hover {
+  @apply -translate-y-2 shadow-2xl border-cs-blue/30;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 212, 255, 0.1);
+}
+
+.collection-badge {
+  @apply transition-all duration-300;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.collection-card:hover .collection-badge {
+  @apply scale-110;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 212, 255, 0.2);
+}
+
+.progress-container {
+  @apply transition-all duration-300;
+}
+
+.collection-card:hover .progress-container .bg-gradient-to-r {
+  @apply shadow-lg;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+}
+
+/* Animation for collection cards */
+.collection-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.collection-card:nth-child(1) { animation-delay: 0.1s; }
+.collection-card:nth-child(2) { animation-delay: 0.2s; }
+.collection-card:nth-child(3) { animation-delay: 0.3s; }
+.collection-card:nth-child(4) { animation-delay: 0.4s; }
+.collection-card:nth-child(5) { animation-delay: 0.5s; }
+.collection-card:nth-child(6) { animation-delay: 0.6s; }
+.collection-card:nth-child(7) { animation-delay: 0.7s; }
+.collection-card:nth-child(8) { animation-delay: 0.8s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .collection-card {
+    @apply p-4;
+  }
+  
+  .collection-badge {
+    @apply w-20 h-20 text-xl;
+  }
+}

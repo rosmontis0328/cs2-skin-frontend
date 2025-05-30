@@ -16,6 +16,8 @@ export interface Skin {
   release_date: Date;
   base_price: number;
   instances?: SkinInstance[];
+  imageLoaded?: boolean;
+  imageFallbackAttempted?: boolean;
 }
 
 export interface SkinInstance {
