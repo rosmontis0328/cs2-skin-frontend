@@ -187,30 +187,52 @@
       class="card group hover:scale-105 transition-all duration-300"
       [class]="getRarityBorderColor(listing.skin.rarity)"
     >
-      <!-- Skin Image Placeholder -->
-      <div class="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg mb-4 flex items-center justify-center relative overflow-hidden border"
-           [class]="getRarityBorderColor(listing.skin.rarity)">
-        <div class="text-4xl text-gray-600">🔫</div>
-        
-        <!-- Badges -->
-        <div class="absolute top-2 left-2 flex flex-col gap-1">
-          <span *ngIf="listing.is_stattrak" 
-                class="px-2 py-1 bg-orange-500 text-white text-xs rounded font-semibold">
-            ST™
-          </span>
-          <span *ngIf="listing.is_souvenir" 
-                class="px-2 py-1 bg-yellow-500 text-black text-xs rounded font-semibold">
-            Souvenir
-          </span>
-        </div>
+    <!-- Skin Image Container -->
+    <div class="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg mb-4 flex items-center justify-center relative overflow-hidden border"
+         [class]="getRarityBorderColor(listing.skin.rarity)">
 
-        <!-- Float -->
-        <div class="absolute top-2 right-2">
-          <span class="px-2 py-1 bg-black/70 text-white text-xs rounded">
-            {{ listing.float_value | number:'1.4-4' }}
-          </span>
-        </div>
+      <!-- Image Display -->
+      <img
+        [src]="getSkinImageUrl(listing.skin)"
+        (load)="onImageLoad($event, listing.skin)"
+        (error)="onImageError($event, listing.skin)"
+        [alt]="listing.skin.name"
+        class="absolute inset-0 object-cover w-full h-full"
+      />
+
+      <!-- Fallback if image fails to load -->
+      <div
+        class="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-semibold px-2 text-center"
+      >
+        ❌ Image Not Available
       </div>
+    
+      <!-- Default Gun Icon as placeholder while loading -->
+      <div
+        class="text-4xl text-gray-600 z-10"
+      >
+        🔫
+      </div>
+    
+      <!-- Badges -->
+      <div class="absolute top-2 left-2 flex flex-col gap-1 z-20">
+        <span *ngIf="listing.is_stattrak" 
+              class="px-2 py-1 bg-orange-500 text-white text-xs rounded font-semibold">
+          ST™
+        </span>
+        <span *ngIf="listing.is_souvenir" 
+              class="px-2 py-1 bg-yellow-500 text-black text-xs rounded font-semibold">
+          Souvenir
+        </span>
+      </div>
+    
+      <!-- Float Value -->
+      <div class="absolute top-2 right-2 z-20">
+        <span class="px-2 py-1 bg-black/70 text-white text-xs rounded">
+          {{ listing.float_value | number:'1.4-4' }}
+        </span>
+      </div>
+    </div>
 
       <!-- Skin Info -->
       <div class="space-y-3">

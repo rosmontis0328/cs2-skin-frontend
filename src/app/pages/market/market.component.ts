@@ -9,7 +9,6 @@ import { AuthService } from '../../services/auth.service';
 import { BalanceService } from '../../services/balance.service';
 import { MarketListing, SkinInstance, Collection, Rarity, Wear, Skin } from '../../models/interfaces';
 
-// Extend Skin for image state
 interface SkinWithImageState extends Skin {
   imageLoaded?: boolean;
   imageFallbackAttempted?: boolean;
@@ -31,9 +30,9 @@ export class MarketComponent implements OnInit {
   private balanceService = inject(BalanceService);
   private fb = inject(FormBuilder);
 
-  marketListings: any[] = [];
+  marketListings: MarketListing[] = [];
   userSkinInstances: SkinInstance[] = [];
-  filteredListings: any[] = [];
+  filteredListings: MarketListing[] = [];
   collections: Collection[] = [];
 
   loading = true;
@@ -105,7 +104,6 @@ export class MarketComponent implements OnInit {
       this.marketListings = listings || [];
       this.collections = collections || [];
 
-      // Initialize image loading state
       this.marketListings.forEach(listing => {
         if (listing.skin) {
           const skinWithState = listing.skin as SkinWithImageState;
@@ -224,7 +222,7 @@ export class MarketComponent implements OnInit {
     this.applySorting(filtered, filters.sortBy);
   }
 
-  applySorting(items: any[], sortBy: string): void {
+  applySorting(items: MarketListing[], sortBy: string): void {
     switch (sortBy) {
       case 'price_asc':
         items.sort((a, b) => a.price - b.price);
@@ -242,7 +240,7 @@ export class MarketComponent implements OnInit {
     this.filteredListings = items;
   }
 
-  public getSkinImageUrl(skin: any): string {
+  public getSkinImageUrl(skin: Skin): string {
     if (skin.image_path && skin.image_path !== null && skin.image_path !== '') {
       let imagePath = skin.image_path;
       if (imagePath.startsWith('./')) {
@@ -256,41 +254,41 @@ export class MarketComponent implements OnInit {
     return '/assets/skins/AWP_Dragon_Lore.jpg';
   }
 
-  public onImageLoad(event: any, skin: any): void {
-    const skinWithState = skin as SkinWithImageState;
-    skinWithState.imageLoaded = true;
+  public onImageLoad(event: Event, skin: Skin): void {
+    (skin as SkinWithImageState).imageLoaded = true;
   }
 
-  public onImageError(event: any, skin: any): void {
+  public onImageError(event: Event, skin: Skin): void {
     const skinWithState = skin as SkinWithImageState;
     skinWithState.imageLoaded = false;
     skinWithState.imageFallbackAttempted = true;
   }
 
-  public buySkin(listing: any): Promise<void> {
+  public async buySkin(listing: MarketListing): Promise<void> {
     if (this.userBalance < listing.price) {
       alert('Insufficient balance!');
-      return Promise.resolve();
+      return;
     }
 
-    if (!confirm(`Buy ${listing.skin.name} for $${listing.price}?`)) return Promise.resolve();
+    if (!confirm(`Buy ${listing.skin.name} for $${listing.price}?`)) return;
 
-    return this.marketService.buySkin(listing.id).toPromise()
-      .then(result => {
-        alert('Purchase successful!');
-        if (result?.newBalance !== undefined) {
-          this.userBalance = result.newBalance;
-          this.balanceService.updateBalance(result.newBalance);
-        } else {
-          return this.loadUserBalance();
-        }
-        return this.loadMarketData();
-      })
-      .catch(error => {
-        console.error('Error buying skin:', error);
-        alert('Purchase failed. Please try again.');
-        return this.loadUserBalance();
-      });
+    try {
+      const result = await this.marketService.buySkin(listing.id).toPromise();
+      alert('Purchase successful!');
+
+      if (result?.newBalance !== undefined) {
+        this.userBalance = result.newBalance;
+        this.balanceService.updateBalance(result.newBalance);
+      } else {
+        await this.loadUserBalance();
+      }
+
+      await this.loadMarketData();
+    } catch (error) {
+      console.error('Error buying skin:', error);
+      alert('Purchase failed. Please try again.');
+      await this.loadUserBalance();
+    }
   }
 
   public openSellModal(): void {
@@ -341,24 +339,21 @@ export class MarketComponent implements OnInit {
     });
   }
 
-  public trackById(index: number, item: any): number {
+  public trackById(index: number, item: MarketListing): number {
     return item.id;
   }
 
   private readonly rarityBorderColors: Record<string, string> = {
-  'white': 'border-gray-300/50',
-  'blue': 'border-blue-400/50',
-  'dark_blue': 'border-blue-600/50',
-  'purple': 'border-purple-400/50',
-  'pink': 'border-pink-400/50',
-  'red': 'border-red-400/50',
-  'contraband': 'border-yellow-400/50'
-};
+    white: 'border-gray-300/50',
+    blue: 'border-blue-400/50',
+    dark_blue: 'border-blue-600/50',
+    purple: 'border-purple-400/50',
+    pink: 'border-pink-400/50',
+    red: 'border-red-400/50',
+    contraband: 'border-yellow-400/50'
+  };
 
-public getRarityBorderColor(rarity: string): string {
-  return this.rarityBorderColors[rarity] || 'border-white/20';
+  public getRarityBorderColor(rarity: string): string {
+    return this.rarityBorderColors[rarity] || 'border-white/20';
+  }
 }
-
-}
-
-
